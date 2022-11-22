@@ -14,6 +14,7 @@ import android.widget.Toast;
 import com.MohammadVarrelBramastaJSleepDN.jsleep_android.model.Account;
 import com.MohammadVarrelBramastaJSleepDN.jsleep_android.request.BaseApiService;
 import com.MohammadVarrelBramastaJSleepDN.jsleep_android.request.UtilsApi;
+import java.io.IOException;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -22,57 +23,60 @@ import retrofit2.Response;
 public class LoginActivity extends AppCompatActivity {
 
     BaseApiService mApiService;
-    EditText username,password;
+    EditText username, password;
     Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
         mApiService = UtilsApi.getApiService();
         mContext = this;
-        Button loginButton = findViewById(R.id.buttonLogin);
-        TextView Register = findViewById(R.id.registerNow);
+
         username = findViewById(R.id.editTextTextEmailAddress);
         password = findViewById(R.id.editTextTextPassword);
 
-        Register.setOnClickListener(new View.OnClickListener() {
+
+        Button login = findViewById(R.id.buttonLogin);
+        TextView register = findViewById(R.id.registerNow);
+
+        login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent move = new Intent(LoginActivity.this, RegisterActivity.class);
-                startActivity(move);
+                Account account = requestLogin();
             }
         });
 
-
-        Button Login = findViewById(R.id.buttonLogin);
-        Login.setOnClickListener(new View.OnClickListener() {
+        register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Account account = requestAccount();
-                Intent move = new Intent(LoginActivity.this, MainActivity.class);
-                startActivity(move);
+                Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                startActivity(intent);
             }
         });
     }
-    protected Account requestAccount(){
-        mApiService.getAccount(0).enqueue(new Callback<Account>() {
+
+    protected Account requestLogin(){
+        mApiService.login(username.getText().toString(), password.getText().toString()).enqueue(new Callback<Account>() {
             @Override
             public void onResponse(Call<Account> call, Response<Account> response) {
-                if(response.isSuccessful()){
+                if (response.isSuccessful()) {
                     Account account;
                     account = response.body();
-                    System.out.println(account.toString());
+                    Toast.makeText(mContext, "Login Success", Toast.LENGTH_SHORT).show();
+                    username = MainActivity.username;
+                    password = MainActivity.password;
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    startActivity(intent);
                 }
             }
 
             @Override
             public void onFailure(Call<Account> call, Throwable t) {
-                Toast.makeText(mContext,"no Account id=0",Toast.LENGTH_SHORT).show();
-
+                Toast.makeText(mContext, "username atau password salah", Toast.LENGTH_SHORT).show();
             }
         });
         return null;
     }
-
 }

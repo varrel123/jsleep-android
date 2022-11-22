@@ -10,5 +10,7 @@ public interface BaseApiService {
     @GET("account/{id}")
     Call<Account> getAccount(@Path("id") int id);
 
+    Call<Account> login(String toString, String toString1);
 
+    Call<Account> register(String toString, String toString1, String toString2);
 }
