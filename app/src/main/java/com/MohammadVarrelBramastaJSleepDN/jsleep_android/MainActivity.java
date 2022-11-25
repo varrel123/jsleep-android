@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private static final Gson gson = new Gson();
     public static EditText username;
     public static EditText password;
+    public static Account accountObject;
 
 
     @Override

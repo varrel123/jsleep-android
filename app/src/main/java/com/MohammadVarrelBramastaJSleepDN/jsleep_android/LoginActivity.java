@@ -64,9 +64,9 @@ public class LoginActivity extends AppCompatActivity {
                 if (response.isSuccessful()) {
                     Account account;
                     account = response.body();
+                    MainActivity.accountObject = account;
+                    System.out.println(account.toString());
                     Toast.makeText(mContext, "Login Success", Toast.LENGTH_SHORT).show();
-                    username = MainActivity.username;
-                    password = MainActivity.password;
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                     startActivity(intent);
                 }
@@ -74,9 +74,11 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<Account> call, Throwable t) {
-                Toast.makeText(mContext, "username atau password salah", Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, "Username atau Password salah", Toast.LENGTH_SHORT).show();
+                System.out.println(t);
             }
         });
         return null;
+
     }
 }
