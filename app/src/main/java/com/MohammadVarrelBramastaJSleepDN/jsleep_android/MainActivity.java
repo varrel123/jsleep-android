@@ -5,24 +5,23 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.Toast;
 import com.MohammadVarrelBramastaJSleepDN.jsleep_android.model.Account;
 import com.MohammadVarrelBramastaJSleepDN.jsleep_android.model.Room;
+import com.MohammadVarrelBramastaJSleepDN.jsleep_android.request.BaseApiService;
+import com.MohammadVarrelBramastaJSleepDN.jsleep_android.request.UtilsApi;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import java.lang.reflect.Type;
 import java.util.*;
-import java.io.IOException;
-import java.io.InputStream;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -31,76 +30,99 @@ public class MainActivity extends AppCompatActivity {
     public static EditText username;
     public static EditText password;
     public static Account accountObject;
+    BaseApiService mApiService;
+    Context mContext;
+    public static int roomsListViewSelected;
+    static ArrayList<Room> roomList = new ArrayList<Room>();
+    int pageInc = 0;
 
-
-    @Override
+        @Override
         protected void onCreate(Bundle savedInstanceState){
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_main);
-
-
+            mApiService = UtilsApi.getApiService();
+            mContext = this;
 
             ArrayList<String> data = new ArrayList<>();
             String test = null;
 
-        try{
-            InputStream IS = getAssets().open("randomRoomList.json");
-            int size = IS.available();
-            byte[] Data1 = new byte[size];
+            ListView listView = findViewById(R.id.ListVieww);
+            Button next = findViewById(R.id.buttonNextProduct);
+            next.setOnClickListener(view ->  {
+                pageInc = pageInc + 1;
+            });
 
+            Button Prev = findViewById(R.id.buttonPrevProduct);
+            Prev.setOnClickListener(view ->  {
+                pageInc = pageInc - 1;
+            });
 
-            IS.read(Data1);
+            Button GO = findViewById(R.id.buttonGoProduct);
+            GO.setOnClickListener(view ->  {
+                requestAllRoom(pageInc,10);
+                ArrayAdapter<Room> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, roomList);
+                listView.setAdapter(adapter);
+            });
 
-            IS.close();
+            requestAllRoom(pageInc,10);
 
+            ArrayAdapter<Room> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, roomList);
 
-            test = new String(Data1,"UTF-8");
-        }catch (IOException e){
-            e.printStackTrace();
+            listView.setAdapter(adapter);
+
         }
 
-        Type listRoomType = new TypeToken<ArrayList<Room>>() { }.getType();
+        public static Room roomSelected(){
+            return roomList.get(roomsListViewSelected);
+        }
 
-        ArrayList<Room> roomList = new Gson().fromJson(test, listRoomType);
+        public boolean onPrepareOptionsMenu(Menu menu) {
+            MenuItem Button = menu.findItem(R.id.search_button3);
+            if(accountObject.renter == null) {
+                Button.setVisible(false);
+            }
+            else{
+                Button.setVisible(true);
+            }
+            return true;
+        }
 
-
-
-        for (Room room: roomList){data.add(room.name);}
-
-
-
-
-        ListView listView = findViewById(R.id.ListVieww);
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, data);
-
-        listView.setAdapter(adapter);
-    }
-
-
-
-
-
-
-
-
+        protected List<Room> requestAllRoom(int page,  int pageSize){
+            mApiService.getAllRoom(page,pageSize).enqueue(new Callback<List<Room>>() {
+                @Override
+                public void onResponse(Call<List<Room>> call, Response<List<Room>> response) {
+                    if (response.isSuccessful()) {
+                        List<Room> room;
+                        room = response.body();
+                        for (Room room1: room){
+                            roomList.add(room1.name);
+                        }
+                        System.out.println(room.toString());
+                        Toast.makeText(mContext, "Login Success", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(MainActivity.this, MainActivity.class);
+                        startActivity(intent);
+                    }
+                }
+                @Override
+                public void onFailure(Call<List<Room>> call, Throwable t) {
+                    Toast.makeText(mContext, "Username atau Password salah", Toast.LENGTH_SHORT).show();
+                    System.out.println(t);
+                }
+            });
+            return null;
+        }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_activity, menu);
-        return true;
+
+        if(accountObject.renter == null)
+            menu.findItem(R.id.search_button3).setVisible(false);
+        else
+            menu.findItem(R.id.search_button3).setVisible(true);
+        return(true);
     }
-
-
-
-
-
-
-
-
-
-
 
      @Override
         public boolean onOptionsItemSelected(@NonNull MenuItem item) {
@@ -110,7 +132,10 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(aboutMeIntent);
                 return true;
 
-
+                case R.id.search_button3:
+                    Intent intent = new Intent(this, CreateRoomActivity.class);
+                    startActivity(intent);
+                    return true;
 
                 default:
                 return super.onOptionsItemSelected(item);

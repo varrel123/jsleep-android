@@ -6,13 +6,13 @@ import java.util.Date;
 public class Room extends Serializable {
     public BedType bedType;
     public int accountId;
-    public Facility facility;
+    public ArrayList<Facility> facility;
     public City city;
     public int size;
-    public String name;
+    public Room name;
     public ArrayList<Date> booked;
     public String address;
-    public Price price;
+    public double price;
 
 //    public Room(int accountId, String name, int size, Price price, Facility facility, City city, String address) {
 //        super();
